@@ -1,23 +1,18 @@
-/* const { gql } = require('apollo-server-koa');
-
-const books = [
-  {
-    title: 'The Awakening',
-    author: 'Kate Chopin',
+const resolvers = {
+  Query: {
+    async user(root, { id }, { models }) {
+      return models.User.findById(id);
+    },
   },
-  {
-    title: 'City of Glass',
-    author: 'Paul Auster',
+  Mutation: {
+    async createUser(root, { username, email, password }, { models }) {
+      return models.User.create({
+        username,
+        email,
+        password,
+      });
+    },
   },
-];
+};
 
-const resolvers = gql`
- Query : {
-    per: () => books
-  }
-`;
-
-cfggfg
-
-module.exports = resolvers;
- */
+export default resolvers;

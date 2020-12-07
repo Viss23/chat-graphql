@@ -2,55 +2,28 @@ import Koa from 'Koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-body';
 import pkg1 from 'apollo-server-koa';
-import typeDefs from './src/schema.js';
+import pkg2 from 'graphql-tools';
 import { sequelize } from './src/models/index.js';
 import models from './src/models/index.js';
-//const resolvers = require('./src/resolvers');
 
-const { ApolloServer, gql } = pkg1;
+import typeDefs from './src/schema/index.js';
+import resolvers from './src/resolvers.js';
 
-const books = [
-  {
-    title: 'The Awakening',
-    author: 'Kate Chopin',
-  },
-  {
-    title: 'City of Glass',
-    author: 'Paul Auster',
-  },
-];
+const { ApolloServer } = pkg1;
+const { makeExecutableSchema } = pkg2;
 
-/* const author = [
-  {
-    name: 'Paul',
-    books: [
-      {
-        title: 'City of Glass',
-        author: 'Paul Auster',
-      },
-      {
-        title: 'City of Glass2',
-        author: 'Paul Auster',
-      },
-    ],
-  },
-];
- */
-const resolvers = {
-  Query: {
-    books: () => books,
-    author: () => books,
-  },
-  Mutation: {},
-};
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
 
 const app = new Koa();
 app.use(bodyParser());
 const router = new Router();
 
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({ schema, context: { models } });
 
-router.post('/users', async (ctx, next) => {
+/* router.post('/users', async (ctx, next) => {
   try {
     const { username, email, password } = ctx.request.body;
     console.log(username);
@@ -83,7 +56,7 @@ router.post('/messages', async (ctx, next) => {
   } catch (err) {
     console.log(err);
   }
-});
+}); */
 
 app.use(router.routes()).use(router.allowedMethods());
 

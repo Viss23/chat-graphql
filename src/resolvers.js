@@ -17,5 +17,7 @@ const resolvers = gql`
   }
 `;
 
+cfggfg
+
 module.exports = resolvers;
  */

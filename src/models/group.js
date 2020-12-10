@@ -7,10 +7,11 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       Group.belongsToMany(models.User, {
         through: 'UserGroups',
-        foreignKey: 'group_Id',
-        otherKey: 'user_Id',
+        foreignKey: 'groupId',
+        otherKey: 'userId',
       });
-      Group.hasMany(models.Message, { foreignKey: 'group_id' });
+      Group.hasMany(models.Message, { foreignKey: 'groupId' });
+      Group.belongsTo(models.User, { foreignKey: 'adminId' });
     }
   }
 

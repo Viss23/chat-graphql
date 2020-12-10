@@ -1,16 +1,21 @@
 import Koa from 'Koa';
-import Router from 'koa-router';
-import bodyParser from 'koa-body';
+//import Router from 'koa-router';
+import { createServer } from 'http';
 import pkg1 from 'apollo-server-koa';
 import pkg2 from 'graphql-tools';
+import pkg3 from 'subscriptions-transport-ws';
+import pkg4 from 'graphql';
 import { sequelize } from './src/models/index.js';
 import models from './src/models/index.js';
 
 import typeDefs from './src/schema/index.js';
 import resolvers from './src/resolvers.js';
+import { pubsub } from './src/resolvers.js';
 
 const { ApolloServer } = pkg1;
 const { makeExecutableSchema } = pkg2;
+const { SubscriptionServer } = pkg3;
+const { execute, subscribe } = pkg4;
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -18,64 +23,59 @@ const schema = makeExecutableSchema({
 });
 
 const app = new Koa();
-app.use(bodyParser());
-const router = new Router();
+//const router = new Router();
 
-const server = new ApolloServer({ schema, context: { models } });
+/* const pubsub = PubSub(); */
 
-/* router.post('/users', async (ctx, next) => {
-  try {
-    const { username, email, password } = ctx.request.body;
-    console.log(username);
-    const user = await models.User.create({ username, email, password });
-    ctx.body = {
-      user,
-    };
-  } catch (err) {
-    console.log(err);
-  }
+const port = 4000;
+
+const httpServer = app.listen(port, () =>
+  console.log(`app is listening on port ${port}`)
+);
+
+const server = new ApolloServer({
+  schema,
+  context: { models },
 });
-router.get('/users', async (ctx, next) => {
-  try {
-    const users = await models.User.findAll();
-    ctx.body = {
-      users,
-    };
-  } catch (err) {
-    console.log(err);
-  }
-});
-router.post('/messages', async (ctx, next) => {
-  try {
-    const { message } = ctx.request.body;
-    console.log(username);
-    const user = await models.User.create({ username, email, password });
-    ctx.body = {
-      user,
-    };
-  } catch (err) {
-    console.log(err);
-  }
-}); */
 
-app.use(router.routes()).use(router.allowedMethods());
+//app.use(router.routes()).use(router.allowedMethods());
+
+sequelize.sync(/* { force: true } */);
+
+//const httpServer = createServer(app);
 
 server.applyMiddleware({
   app,
 });
 
-sequelize.sync({ force: true });
+server.installSubscriptionHandlers(httpServer);
 
 sequelize
   .authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
-    console.log(sequelize.models.User);
   })
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
   });
 
-app.listen({ port: 4000 }, () =>
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
-);
+/* httpServer.listen(port, () => {
+  console.log(
+    `🚀 Server ready at http://localhost:${port}${server.graphqlPath}`
+  );
+  console.log(
+    `🚀 Subscriptions ready at ws://localhost:${port}${server.subscriptionsPath}`
+  );
+  new SubscriptionServer(
+    {
+      execute,
+      subscribe,
+      schema,
+    },
+    {
+      server: websocketServer,
+      path: '/subscriptions',
+    }
+  );
+});
+ */

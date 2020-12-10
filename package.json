@@ -23,7 +23,8 @@
     "nodemon": "^2.0.6",
     "pg": "^8.5.1",
     "sequelize": "^6.3.5",
-    "sequelize-cli": "^6.2.0"
+    "sequelize-cli": "^6.2.0",
+    "subscriptions-transport-ws": "^0.9.18"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.8",

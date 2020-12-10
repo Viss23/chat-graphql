@@ -8,9 +8,10 @@ export default (sequelize, DataTypes) => {
       User.hasMany(models.Message, { foreignKey: 'user_id' });
       User.belongsToMany(models.Group, {
         through: 'UserGroups',
-        foreignKey: 'user_Id',
-        otherKey: 'group_Id',
+        foreignKey: 'userId',
+        otherKey: 'groupId',
       });
+      User.hasMany(models.Group, { foreignKey: 'adminId' });
     }
   }
 

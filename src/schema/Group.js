@@ -4,12 +4,14 @@ export const types = `
     adminId: String!,
     name: String!,
     imageUrl: String!,
+    messages: [Message]
   }
 `;
 
 export const queries = `
   group(id: String!): Group
   allGroups: [Group!]!
+  allMessagesInGroup(groupId: String!): [Message]
 `;
 
 export const mutations = `

@@ -4,6 +4,11 @@ export const types = `
     message: String!,
     userId: String!,
     groupId: String,
+    sender: User!
+  }
+  type MessageDeleted{
+    messageId: String
+    groupId: String
   }
 `;
 
@@ -15,8 +20,10 @@ export const queries = `
 
 export const mutations = `
   createMessage(userId: String!,message: String!,groupId:String!): Message!
+  deleteMessage(messageId: String): String
 `;
 
 export const subscriptions = `
-  newMessageInGroup(groupId: String): Message
+  newMessageInGroup(groupId: String): Message!
+  messageInGroupDeleted(groupId: String): MessageDeleted
 `;

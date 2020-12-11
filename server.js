@@ -1,21 +1,16 @@
 import Koa from 'Koa';
-//import Router from 'koa-router';
-import { createServer } from 'http';
+
 import pkg1 from 'apollo-server-koa';
 import pkg2 from 'graphql-tools';
-import pkg3 from 'subscriptions-transport-ws';
-import pkg4 from 'graphql';
+
 import { sequelize } from './src/models/index.js';
 import models from './src/models/index.js';
 
 import typeDefs from './src/schema/index.js';
 import resolvers from './src/resolvers.js';
-import { pubsub } from './src/resolvers.js';
 
 const { ApolloServer } = pkg1;
 const { makeExecutableSchema } = pkg2;
-const { SubscriptionServer } = pkg3;
-const { execute, subscribe } = pkg4;
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -23,9 +18,6 @@ const schema = makeExecutableSchema({
 });
 
 const app = new Koa();
-//const router = new Router();
-
-/* const pubsub = PubSub(); */
 
 const port = 4000;
 
@@ -38,11 +30,7 @@ const server = new ApolloServer({
   context: { models },
 });
 
-//app.use(router.routes()).use(router.allowedMethods());
-
 sequelize.sync(/* { force: true } */);
-
-//const httpServer = createServer(app);
 
 server.applyMiddleware({
   app,
@@ -58,24 +46,3 @@ sequelize
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
   });
-
-/* httpServer.listen(port, () => {
-  console.log(
-    `🚀 Server ready at http://localhost:${port}${server.graphqlPath}`
-  );
-  console.log(
-    `🚀 Subscriptions ready at ws://localhost:${port}${server.subscriptionsPath}`
-  );
-  new SubscriptionServer(
-    {
-      execute,
-      subscribe,
-      schema,
-    },
-    {
-      server: websocketServer,
-      path: '/subscriptions',
-    }
-  );
-});
- */

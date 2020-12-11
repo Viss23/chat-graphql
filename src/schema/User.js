@@ -4,6 +4,7 @@ export const types = `
     username: String!,
     email: String!,
     password: String!,
+    imageUrl: String
   }
 `;
 
@@ -15,6 +16,7 @@ export const queries = `
 export const mutations = `
   createUser(username: String!,
       email: String!,
-      password: String!): User!
+      password: String!,
+      imageUrl: String): User!
   getUserMessages(userId:String!): [Message]!
 `;

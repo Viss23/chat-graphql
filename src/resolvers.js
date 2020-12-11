@@ -5,6 +5,7 @@ const { PubSub, withFilter } = pkg;
 export const pubsub = new PubSub();
 
 const NEW_MESSAGE_IN_GROUP = 'NEW_MESSAGE_IN_GROUP';
+const MESSAGE_IN_GROUP_DELETED = 'MESSAGE_IN_GROUP_DELETED';
 
 const resolvers = {
   Query: {
@@ -15,7 +16,31 @@ const resolvers = {
       return models.User.findAll();
     },
     async allGroups(_, __, { models }) {
-      return models.Group.findAll();
+      return models.Group.findAll({
+        include: [
+          {
+            model: models.Message,
+            as: 'messages',
+          },
+        ],
+      });
+    },
+    async allMessagesInGroup(_, { groupId }, { models }) {
+      const res = await models.Group.findByPk(groupId, {
+        include: [
+          {
+            model: models.Message,
+            as: 'messages',
+            include: [
+              {
+                model: models.User,
+                as: 'sender',
+              },
+            ],
+          },
+        ],
+      });
+      return res.messages;
     },
     async allMessages(_, __, { models }) {
       return models.Message.findAll();
@@ -29,11 +54,16 @@ const resolvers = {
     },
   },
   Mutation: {
-    async createUser(root, { username, email, password }, { models }) {
+    async createUser(
+      root,
+      { username, email, password, imageUrl },
+      { models }
+    ) {
       return models.User.create({
         username,
         email,
         password,
+        imageUrl,
       });
     },
     async createMessage(root, { userId, groupId, message }, { models }) {
@@ -42,11 +72,38 @@ const resolvers = {
         groupId,
         message,
       });
-      pubsub.publish(NEW_MESSAGE_IN_GROUP, { newMessageInGroup: newMessage });
-      return newMessage;
+      const newMessageWithSender = await models.Message.findByPk(
+        newMessage.id,
+        {
+          include: [
+            {
+              model: models.User,
+              as: 'sender',
+            },
+          ],
+        }
+      );
+      pubsub.publish(NEW_MESSAGE_IN_GROUP, {
+        newMessageInGroup: newMessageWithSender,
+      });
+      return newMessageWithSender;
     },
     async createGroup(_, { name, imageUrl, userId: adminId }, { models }) {
       return models.Group.create({ name, imageUrl, adminId });
+    },
+    async deleteMessage(_, { messageId }, { models }) {
+      const message = await models.Message.findByPk(messageId);
+      const resultOfDeleting = await models.Message.destroy({
+        where: { id: messageId },
+      });
+      const parsedResult = resultOfDeleting ? messageId : 'Deleting Failed';
+      pubsub.publish(MESSAGE_IN_GROUP_DELETED, {
+        messageInGroupDeleted: {
+          messageId: messageId,
+          groupId: message.groupId,
+        },
+      });
+      return parsedResult;
     },
   },
   Subscription: {
@@ -54,8 +111,15 @@ const resolvers = {
       subscribe: withFilter(
         () => pubsub.asyncIterator(NEW_MESSAGE_IN_GROUP),
         (payload, variables) => {
-          console.log(payload.newMessageInGroup, '///////////');
           return payload.newMessageInGroup.groupId === variables.groupId;
+        }
+      ),
+    },
+    messageInGroupDeleted: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(MESSAGE_IN_GROUP_DELETED),
+        (payload, variables) => {
+          return payload.messageInGroupDeleted.groupId === variables.groupId;
         }
       ),
     },

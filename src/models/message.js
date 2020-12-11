@@ -5,8 +5,10 @@ const { Model } = pkg1;
 export default (sequelize, DataTypes) => {
   class Message extends Model {
     static associate(models) {
-      Message.belongsTo(models.User, { foreignKey: 'userId' });
-      Message.belongsTo(models.Group, { foreignKey: 'groupId' });
+      Message.belongsTo(models.User, { foreignKey: 'userId', as: 'sender' });
+      Message.belongsTo(models.Group, {
+        foreignKey: 'groupId',
+      });
     }
   }
   Message.init(
